@@ -65,7 +65,13 @@
     const monthly = data.monthly_items ?? data.months.reduce((s, m) => s + m.count, 0);
     const outsideCount = data.outside_items ?? (data.outside || []).reduce((s, o) => s + o.count, 0);
 
-    els.title.textContent = data.title || "抓大鹅渲染图统计清单";
+    const rawTitle = data.title || "抓大鹅渲染图统计清单";
+    // Keep yellow marker on 渲染图 when the default Chinese title is used.
+    if (rawTitle.includes("渲染图")) {
+      els.title.innerHTML = rawTitle.replace("渲染图", '<span class="mark">渲染图</span>');
+    } else {
+      els.title.textContent = rawTitle;
+    }
     els.yearLabel.textContent = `${year} 年度渲染进度`;
     els.footerYear.textContent = String(year);
     els.monthlyItems.textContent = String(monthly);

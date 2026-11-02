@@ -16,7 +16,7 @@ Public site at https://keepline.github.io/goose-render-index/ showing the same c
 - Chinese UI. Lead with year summary: monthly_items, months_with_content/12, outside_items, progress bar, current month focus + item chips.
 - Year overview table (month → count → status). Expandable month sections listing item names.
 - Outside section separately.
-- Show `generated_at`. Dark, clean, readable on mobile.
+- Show `generated_at`. Cream / royal-blue / orange scrapbook palette (see design ref); readable on mobile.
 - Load `./data/2026.json` (relative). Works on GitHub Pages project site (`/goose-render-index/`).
 
 ## Repo setup

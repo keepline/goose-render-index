@@ -7,6 +7,10 @@ Folder rules (must match SPEC / Obsidian sync):
 - Other top-level folders (e.g. 毛绒玩具, 元气森林): their direct child folders
   are outside_items (not in monthly_items).
 - Files (README, scripts, etc.) are ignored.
+- Pack lists (当月焦点 and month/outside item lists) are sorted by latest
+  official PNG mtime in that pack folder, newest first. Temporary files
+  whose names contain ``_tmp_`` are ignored. Packs without PNGs sort last,
+  then by name.
 """
 
 from __future__ import annotations
@@ -14,7 +18,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 MONTH_PREFIX_RE = re.compile(r"^(0[1-9]|1[0-2])_")
@@ -25,18 +29,64 @@ def visible_dirs(path: Path) -> list[Path]:
     if not path.is_dir():
         return []
     out = []
-    for child in sorted(path.iterdir(), key=lambda p: p.name.casefold()):
+    for child in path.iterdir():
         name = child.name
         if name.startswith("."):
             continue
         if child.is_dir():
             out.append(child)
+    out.sort(key=lambda p: p.name.casefold())
     return out
 
 
 def month_number(folder_name: str) -> int | None:
     m = MONTH_PREFIX_RE.match(folder_name)
     return int(m.group(1)) if m else None
+
+
+def pack_rendered_at(path: Path) -> datetime | None:
+    """Latest official PNG mtime in a pack folder, as Asia/Shanghai."""
+    if not path.is_dir():
+        return None
+    times: list[float] = []
+    try:
+        entries = list(path.iterdir())
+    except OSError:
+        return None
+    for item in entries:
+        name = item.name
+        if name.startswith(".") or "_tmp_" in name:
+            continue
+        if not name.lower().endswith(".png"):
+            continue
+        if not item.is_file():
+            continue
+        try:
+            times.append(item.stat().st_mtime)
+        except OSError:
+            continue
+    if not times:
+        return None
+    return datetime.fromtimestamp(max(times), tz=TZ_SHANGHAI)
+
+
+def item_entry(path: Path) -> dict:
+    entry: dict = {"name": path.name}
+    ts = pack_rendered_at(path)
+    if ts is not None:
+        entry["rendered_at"] = ts.isoformat(timespec="seconds")
+    return entry
+
+
+def pack_items(path: Path) -> list[dict]:
+    """Direct visible child folders, newest official PNG first."""
+
+    def sort_key(folder: Path):
+        ts = pack_rendered_at(folder)
+        stamp = ts.timestamp() if ts is not None else float("-inf")
+        return (-stamp, folder.name.casefold())
+
+    return [item_entry(folder) for folder in sorted(visible_dirs(path), key=sort_key)]
 
 
 def scan(root: Path, year: int) -> dict:
@@ -57,8 +107,8 @@ def scan(root: Path, year: int) -> dict:
     # Prefer actual folder names found on disk for month labels.
     for child in visible_dirs(root):
         num = month_number(child.name)
+        items = pack_items(child)
         if num is not None:
-            items = [d.name for d in visible_dirs(child)]
             months_map[num] = {
                 "number": num,
                 "folder": child.name,
@@ -66,7 +116,6 @@ def scan(root: Path, year: int) -> dict:
                 "count": len(items),
             }
         else:
-            items = [d.name for d in visible_dirs(child)]
             outside.append(
                 {
                     "folder": child.name,
@@ -149,6 +198,13 @@ def main() -> int:
         f"months_with_content={payload['months_with_content']}/12 "
         f"outside_items={payload['outside_items']}"
     )
+    current = next((m for m in payload["months"] if m["number"] == payload["current_month"]), None)
+    if current:
+        names = [
+            item["name"] if isinstance(item, dict) else item
+            for item in current.get("items") or []
+        ]
+        print(f"current_month={current['folder']} focus={names}")
     return 0
 
 

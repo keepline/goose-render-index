@@ -30,6 +30,33 @@
     return new URL(`./data/${year}.json`, window.location.href).toString();
   }
 
+  function itemName(item) {
+    if (item == null) return "";
+    if (typeof item === "string") return item;
+    return item.name || "";
+  }
+
+  function itemRenderedAtMs(item) {
+    if (!item || typeof item !== "object" || !item.rendered_at) return null;
+    const t = Date.parse(item.rendered_at);
+    return Number.isNaN(t) ? null : t;
+  }
+
+  function sortItemsNewestFirst(items) {
+    // Newest official render first; missing timestamps go last, then name.
+    return (items || []).slice().sort((a, b) => {
+      const ta = itemRenderedAtMs(a);
+      const tb = itemRenderedAtMs(b);
+      if (ta == null && tb == null) {
+        return itemName(a).localeCompare(itemName(b), "zh-CN");
+      }
+      if (ta == null) return 1;
+      if (tb == null) return -1;
+      if (tb !== ta) return tb - ta;
+      return itemName(a).localeCompare(itemName(b), "zh-CN");
+    });
+  }
+
   function formatGeneratedAt(iso) {
     if (!iso) return "—";
     const d = new Date(iso);
@@ -97,10 +124,10 @@
       empty.textContent = "本月暂无条目";
       els.currentChips.appendChild(empty);
     } else {
-      currentMonth.items.forEach((name) => {
+      sortItemsNewestFirst(currentMonth.items).forEach((item) => {
         const chip = document.createElement("span");
         chip.className = "chip";
-        chip.textContent = name;
+        chip.textContent = itemName(item);
         els.currentChips.appendChild(chip);
       });
     }
@@ -135,9 +162,9 @@
       } else {
         const ul = document.createElement("ul");
         ul.className = "item-list";
-        m.items.forEach((name) => {
+        sortItemsNewestFirst(m.items).forEach((item) => {
           const li = document.createElement("li");
-          li.textContent = name;
+          li.textContent = itemName(item);
           ul.appendChild(li);
         });
         details.appendChild(ul);
@@ -163,9 +190,9 @@
         details.appendChild(summary);
         const ul = document.createElement("ul");
         ul.className = "item-list";
-        (group.items || []).forEach((name) => {
+        sortItemsNewestFirst(group.items || []).forEach((item) => {
           const li = document.createElement("li");
-          li.textContent = name;
+          li.textContent = itemName(item);
           ul.appendChild(li);
         });
         details.appendChild(ul);

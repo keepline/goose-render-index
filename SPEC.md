@@ -10,6 +10,8 @@ Public site at https://keepline.github.io/goose-render-index/ showing the same c
 - Months `01_Jan`…`12_Dec` (prefix `01_`…`12_`): each **direct visible child folder** = 1 monthly item.
 - Other top-level folders (e.g. 毛绒玩具, 元气森林): their direct children = outside_items (not in monthly total).
 - Do not count files (README, scripts).
+- Pack lists, including **当月焦点**, are sorted by the latest official PNG mtime inside that pack folder (ignore names containing `_tmp_`), newest first. Missing PNG timestamps sort last, then by name. Each item is `{ "name", "rendered_at" }` (`rendered_at` is ISO-8601 Asia/Shanghai). The front-end re-sorts by `rendered_at` so the order is not a one-off edit of `data/YYYY.json`.
+- The Obsidian inventory script (`更新2026年度总览.ps1`) uses the same render-time sort for 本月焦点 and month/outside lists.
 
 ## Site requirements
 - Single-page static site (HTML+CSS+vanilla JS, no build step preferred; Vite ok if simple).

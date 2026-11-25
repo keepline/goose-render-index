@@ -1,9 +1,9 @@
 {
   "title": "抓大鹅渲染图统计清单",
   "year": 2026,
-  "generated_at": "2026-11-23T18:15:15+08:00",
+  "generated_at": "2026-11-25T18:25:04+08:00",
   "source": "D:\\Works\\KUNPO Projects\\2023\\鹅\\Rendering\\Output\\2026",
-  "monthly_items": 94,
+  "monthly_items": 96,
   "outside_items": 9,
   "months_with_content": 11,
   "current_month": 11,
@@ -439,6 +439,14 @@
       "folder": "11_Nov",
       "items": [
         {
+          "name": "保洁鹅",
+          "rendered_at": "2026-11-25T18:18:40+08:00"
+        },
+        {
+          "name": "洗刷刷鹅",
+          "rendered_at": "2026-11-25T18:10:43+08:00"
+        },
+        {
           "name": "肯悦鹅",
           "rendered_at": "2026-11-23T17:14:14+08:00"
         },
@@ -459,7 +467,7 @@
           "rendered_at": "2026-11-02T14:22:08+08:00"
         }
       ],
-      "count": 5
+      "count": 7
     },
     {
       "number": 12,
